@@ -26,6 +26,8 @@ logy=True
 
 df_final=loaddata() 
 
+#print(dtr.loc[dtr['KitchenAbvGr'] < 1 ,['KitchenAbvGr','KitchenQual']]) 
+
 numeric_feats = []
 numeric_feats = df_final.dtypes[df_final.dtypes != "object"].index 
 skewed_feats = df_final[numeric_feats].apply(lambda x: x.skew())
