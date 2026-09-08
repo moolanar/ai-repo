@@ -1,0 +1,12 @@
+docker run -d --name ollama --network langchain-net -p 11434:11434 -v ollama_data:/root/.ollama ollama/ollama:latest
+docker exec ollama ollama pull qwen2.5-coder:7b
+docker run -d --name dsh --network langchain-net -e OPENAI_API_BASE=http://ollama:11434/v1 -e OPENAI_BASE_URL=http://ollama:11434/v1 -e OPENAI_API_KEY=ollama -e MODEL_NAME=qwen2.5-coder:7b -e MODEL=qwen2.5-coder:7b -p 3080:3080 smanx/deepseek-harness:latest
+
+docker run -d --name dsh -p 3080:3080  smanx/deepseek-harness:latest
+-v dsh_data:/data/.dsh --add-host=host.docker.internal:host-gateway
+
+/////////////////////////////
+
+docker run --cpus="4.0" -d -p 8080:8080 -v "${PWD}:/models" ghcr.io/ggml-org/llama.cpp:server -m /models/qwen2.5-coder-7b-instruct-q4_k_m.gguf --host 0.0.0.0 --port 8080
+
+/////////////////////////////
