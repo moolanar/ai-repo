@@ -27,3 +27,40 @@ ghcr.io/open-webui/open-webui:main
 docker run --cpus="4.0" -d -p 8080:8080 -v "${PWD}:/models" ghcr.io/ggml-org/llama.cpp:server -m /models/qwen2.5-coder-7b-instruct-q4_k_m.gguf --host 0.0.0.0 --port 8080
 
 /////////////////////////////
+
+
+
+/////////////
+powershell
+winget install llama.cpp
+
+Step 1: Launch llama.cpp in Server Mode
+
+llama serve -m "D:\app1\Qwen3.5-9B-Q3_K_S-3.46bpw.gguf" -ngl 24 -c 8192 --port 8080 --cors-origins localhost
+
+
+Step 2: Install the Extension in VS CodeOpen Visual Studio Code.Click on the Extensions icon on the left sidebar (or press Ctrl + Shift + X).Search for Continue (by Continue Dev, Inc.).Click Install. A small dynamic "C" logo icon will appear on your left-hand menu bar
+
+
+Step 3: Configure Continue to Use Your Local ModelClick the Continue (C) icon on your left sidebar to open the chat panel.Click the Gear (⚙️) icon at the bottom right of the Continue panel to open its configuration file (config.json).Replace the "models" block in the JSON file with the following configuration:json
+
+{
+  "models": [
+    {
+      "title": "Local Qwen Java Assistant",
+      "provider": "llama.cpp",
+      "model": "qwen3.5-9b",
+      "apiBase": "http://localhost:8080"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Local Qwen Java Assistant",
+    "provider": "llama.cpp",
+    "model": "qwen3.5-9b",
+    "apiBase": "http://localhost:8080"
+  }
+}
+
+Step 4: How to Make the Model Create FilesNow that the sandbox barrier is broken, you can use shortcuts to force the model to edit your workspace:To Generate a New File: Open a blank file in VS Code, press Ctrl + I (or Cmd + I on Mac) to open the inline prompt bar. Type exactly what you want (e.g., "Create a robust Java food delivery Order controller class with error handling"). Continue will write the code directly into the editor. You can then just hit Accept.To Reference Your Existing Project Structure: In the sidebar chat panel, type @Files or @Folder followed by your prompt. This feeds your entire Java project layout directly into Qwen's 32k context window so it can write code that perfectly matches your existing packages, imports, and variables.
+
+
