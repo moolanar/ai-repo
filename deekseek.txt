@@ -1,3 +1,15 @@
+Device name	LAPTOP-IOOG0HL9
+Processor	AMD Ryzen 9 5900HS with Radeon Graphics (3.30 GHz)
+Installed RAM	16.0 GB (15.4 GB usable)
+Graphics card	NVIDIA GeForce RTX 3050 Ti Laptop GPU (4 GB)
+AMD Radeon(TM) Graphics (496 MB)
+Storage	805 GB of 954 GB used
+Device ID	94F40009-xxxx-4AF9-B323-848828FCC404
+Product ID	00327-xxxx3-44037-AAOEM
+System type	64-bit operating system, x64-based processor
+Pen and touch	No pen or touch input is available for this display
+
+/////////
 docker run -d --name ollama --network langchain-net -p 11434:11434 -v ollama_data:/root/.ollama ollama/ollama:latest
 docker exec ollama ollama pull qwen2.5-coder:7b
 docker exec ollama ollama run qwen2.5-coder:7b
