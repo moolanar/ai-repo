@@ -1,5 +1,8 @@
 Once it’s running, your app is live on the internet at https://refinery-okay-unwelcome.ngrok-free.dev.
 ngrok http 3000 --url https://refinery-okay-unwelcome.ngrok-free.dev
+
+////
+docker exec -i postgres psql -U postgres -d my_new_db -c "SELECT salesperson, region, amount, dense_Rank() OVER ( ORDER BY amount DESC) AS row_num FROM sales;"
 ///////
 
 Device name	LAPTOP-IOOG0HL9
