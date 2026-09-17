@@ -82,4 +82,13 @@ Step 3: Configure Continue to Use Your Local ModelClick the Continue (C) icon on
 
 Step 4: How to Make the Model Create FilesNow that the sandbox barrier is broken, you can use shortcuts to force the model to edit your workspace:To Generate a New File: Open a blank file in VS Code, press Ctrl + I (or Cmd + I on Mac) to open the inline prompt bar. Type exactly what you want (e.g., "Create a robust Java food delivery Order controller class with error handling"). Continue will write the code directly into the editor. You can then just hit Accept.To Reference Your Existing Project Structure: In the sidebar chat panel, type @Files or @Folder followed by your prompt. This feeds your entire Java project layout directly into Qwen's 32k context window so it can write code that perfectly matches your existing packages, imports, and variables.
 
+///////////
 
+name: Main Config
+version: 1.0.0
+schema: v1
+models:
+  - name: Local Qwen Java Assistant
+    provider: llama.cpp
+    model: qwen3.5-9b
+    apiBase: http://localhost:8080
