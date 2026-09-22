@@ -1,3 +1,5 @@
+docker run -it --rm -v C:\Users\moola\your-java-project:/workspace -w /workspace node:22 bash -c "npm install -g @mariozechner/pi-coding-agent && pi"
+
 Once it’s running, your app is live on the internet at https://refinery-okay-unwelcome.ngrok-free.dev.
 ngrok http 3000 --url https://refinery-okay-unwelcome.ngrok-free.dev
 
