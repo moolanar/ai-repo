@@ -1,0 +1,33 @@
+Generate a complete, runnable full-stack application using this tech stack:
+
+Backend: Java 17, Spring Boot, Spring Data JPA, REST API
+Frontend: React.js
+Database: PostgreSQL
+tool : Gradle, docker
+
+Use this exact database schema (do not modify column names, types, or primary keys):
+
+sql
+CREATE TABLE CUSTOMER (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL, CONTACTNO NUMERIC(10, 0));
+CREATE TABLE PRODUCT (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL);
+CREATE TABLE PRODUCT_PRICE (id INT, date TIMESTAMP NOT NULL, unitprice NUMERIC(10, 2) NOT NULL, PRIMARY KEY (id, date));
+CREATE TABLE item (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL, unitprice NUMERIC(10, 2) NOT NULL, unittype VARCHAR(150) NOT NULL);
+CREATE TABLE ITEM_PRICE (id INT, date TIMESTAMP NOT NULL, unitprice NUMERIC(10, 2) NOT NULL, PRIMARY KEY (id, date));
+CREATE TABLE PURCHASE (id INT, date TIMESTAMP NOT NULL, SEQNO INT, ITEM_id INT NOT NULL, quantity NUMERIC(10, 2), price NUMERIC(10, 2) NOT NULL, PRIMARY KEY (id, date, SEQNO));
+CREATE TABLE SALES (id INT, date TIMESTAMP NOT NULL, SEQNO INT, PRODUCT_id INT NOT NULL, quantity NUMERIC(10, 2), CUSTOMER_id INT, PRIMARY KEY (id, date, SEQNO));
+
+Requirements:
+
+Use gradle image for build
+Backend (Spring Boot) — one JPA entity, repository, service, and REST controller per table, with correct composite key handling (@EmbeddedId or @IdClass for PRODUCT_PRICE, ITEM_PRICE, PURCHASE, SALES). application.properties for PostgreSQL, and global exception handling.
+Frontend (React) — one page/component per entity with list view and create/edit form, an API service layer using axios, routing via react-router, and package.json.
+Database — a single .sql file with the exact CREATE TABLE statements above.
+
+File creation process — follow this strictly:
+Ensure filepath and fileformat issues are avoided
+
+Output constraints:
+
+No // TODO, ..., or placeholder logic — every file must be complete and functional as written.
+If a file cannot be completed in full, state which file and why, rather than silently truncating it.
+At the very end, print a full manifest: every file path created, in the order created, so completeness can be verified against the workspace.
