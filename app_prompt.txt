@@ -1,33 +1,83 @@
-Generate a complete, runnable full-stack application using this tech stack:
+Build a full-stack CRUD application for the data model below, using Java (Spring Boot) REST API, React JS, and PostgreSQL, then containerize the whole stack with Docker.
 
-Backend: Java 17, Spring Boot, Spring Data JPA, REST API
-Frontend: React.js
-Database: PostgreSQL
-tool : Gradle, docker
-
-Use this exact database schema (do not modify column names, types, or primary keys):
-
+1. Data Model (exact schema — do not alter table/column names, types, or constraints)
 sql
-CREATE TABLE CUSTOMER (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL, CONTACTNO NUMERIC(10, 0));
+
+CREATE TABLE CUSTOMER (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL, CONTACTNO NUMERIC(10, 0) );
 CREATE TABLE PRODUCT (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL);
-CREATE TABLE PRODUCT_PRICE (id INT, date TIMESTAMP NOT NULL, unitprice NUMERIC(10, 2) NOT NULL, PRIMARY KEY (id, date));
+CREATE TABLE PRODUCT_PRICE (id INT , date TIMESTAMP NOT NULL , unitprice NUMERIC(10, 2) NOT NULL,  PRIMARY KEY (id, date));
 CREATE TABLE item (id INT PRIMARY KEY, name VARCHAR(150) NOT NULL, unitprice NUMERIC(10, 2) NOT NULL, unittype VARCHAR(150) NOT NULL);
-CREATE TABLE ITEM_PRICE (id INT, date TIMESTAMP NOT NULL, unitprice NUMERIC(10, 2) NOT NULL, PRIMARY KEY (id, date));
-CREATE TABLE PURCHASE (id INT, date TIMESTAMP NOT NULL, SEQNO INT, ITEM_id INT NOT NULL, quantity NUMERIC(10, 2), price NUMERIC(10, 2) NOT NULL, PRIMARY KEY (id, date, SEQNO));
-CREATE TABLE SALES (id INT, date TIMESTAMP NOT NULL, SEQNO INT, PRODUCT_id INT NOT NULL, quantity NUMERIC(10, 2), CUSTOMER_id INT, PRIMARY KEY (id, date, SEQNO));
+CREATE TABLE ITEM_PRICE (id INT , date TIMESTAMP NOT NULL , unitprice NUMERIC(10, 2) NOT NULL,  PRIMARY KEY (id, date));
+CREATE TABLE PURCHASE (id INT , date TIMESTAMP NOT NULL ,SEQNO INT,  ITEM_id INT NOT NULL, quantity NUMERIC(10, 2), price NUMERIC(10, 2) NOT NULL , PRIMARY KEY (id, date,SEQNO));
+CREATE TABLE SALES (id INT , date TIMESTAMP NOT NULL , SEQNO INT, PRODUCT_id INT NOT NULL, quantity NUMERIC(10, 2), CUSTOMER_id INT , PRIMARY KEY (id, date, SEQNO));
+Relationships:
 
-Requirements:
+PURCHASE.ITEM_id → item.id
+SALES.PRODUCT_id → PRODUCT.id
+SALES.CUSTOMER_id → CUSTOMER.id
+PRODUCT_PRICE and ITEM_PRICE are time-series price history tables (composite key id + date). The id column references the product/item but is not a formal foreign key.
+⚠️ Critical Identifier Rule: PostgreSQL folds unquoted identifiers to lowercase. Use lowercase identifiers everywhere (Java field names, SQL, Docker, env vars). Never quote identifiers (e.g., do not use "\"CUSTOMER\"", use "customer").
 
-Use gradle image for build
-Backend (Spring Boot) — one JPA entity, repository, service, and REST controller per table, with correct composite key handling (@EmbeddedId or @IdClass for PRODUCT_PRICE, ITEM_PRICE, PURCHASE, SALES). application.properties for PostgreSQL, and global exception handling.
-Frontend (React) — one page/component per entity with list view and create/edit form, an API service layer using axios, routing via react-router, and package.json.
-Database — a single .sql file with the exact CREATE TABLE statements above.
+2. Tech Stack
+Backend: Java 17, Spring Boot 3 (Spring Web, Spring Data JPA), Gradle (Groovy or Kotlin DSL)
+Database: PostgreSQL
+Frontend: React 18 (function components + hooks), react-router-dom, axios
+Containerization: Docker + Docker Compose
+3. Backend Requirements
+Entities & Keys
+Model each table as a JPA entity.
+Single-column PKs (CUSTOMER, PRODUCT, item) → plain @Id.
+Composite PKs (PRODUCT_PRICE, ITEM_PRICE → id + date; PURCHASE, SALES → id + date + seqno) → MUST use @EmbeddedId with a dedicated Serializable ID class. Implement equals/hashCode on all key fields. Do NOT use standard @Id for composite keys.
+Foreign Keys: Expose as plain scalar fields (e.g., Integer itemId, Integer productId, Integer customerId) in the entity and API. If you add @ManyToOne for convenience, mark it @JsonIgnore and insertable=false, updatable=false on the join column to prevent serialization conflicts.
+Hibernate/DDL: Set spring.jpa.hibernate.ddl-auto=validate and spring.sql.init.mode=always. Provide a schema.sql that matches the DDL exactly, including FK constraints for PURCHASE→item, SALES→PRODUCT, SALES→CUSTOMER.
+REST API
+For every table, expose full CRUD under /api/<resource>:
 
-File creation process — follow this strictly:
-Ensure filepath and fileformat issues are avoided
+GET /api/<resource> — list all
+GET /api/<resource>/{key...} — get one (composite keys → one path segment per key part, e.g., /api/purchases/{id}/{date}/{seqno})
+POST /api/<resource> — create (reject with 409 if PK already exists)
+PUT /api/<resource>/{key...} — update (404 if missing)
+DELETE /api/<resource>/{key...} — delete (404 if missing)
+Convenience Lookup Endpoints:
 
-Output constraints:
+GET /api/product-prices/product/{productId}
+GET /api/item-prices/item/{itemId}
+GET /api/purchases/document/{id} and /api/purchases/item/{itemId}
+GET /api/sales/document/{id}, /api/sales/customer/{id}, /api/sales/product/{id}
+Cross-cutting Concerns:
 
-No // TODO, ..., or placeholder logic — every file must be complete and functional as written.
-If a file cannot be completed in full, state which file and why, rather than silently truncating it.
-At the very end, print a full manifest: every file path created, in the order created, so completeness can be verified against the workspace.
+Bean validation (@NotNull, @NotBlank) on required fields.
+@RestControllerAdvice that converts MethodArgumentNotValidException → 400 (field-level errors) and DataIntegrityViolationException → 409 (FK/PK violations).
+CORS enabled for http://localhost:3000 in dev.
+Composite-key date fields use LocalDateTime. Bind via @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss"). If timezone parsing fails, strip timezone info and send plain ISO strings.
+4. Frontend Requirements
+One page/route per table: Customers, Products, Product Prices, Items, Item Prices, Purchases, Sales — with client-side routing (react-router-dom) and a left-hand nav.
+Each page: an inline form (create/edit) + a table listing all records with Edit/Delete actions.
+Foreign Key Inputs: For Purchases → Item and Sales → Product, Customer, use <select> dropdowns populated from the referenced entity's list endpoint.
+Composite Key Editing: Disable key fields in edit mode. Force delete + recreate instead of renaming keys.
+Date Input Handling: Convert HTML datetime-local values to YYYY-MM-DDTHH:mm:ss (no timezone, no seconds truncation) before sending to the API.
+API Client: Centralize calls in src/api/<entity>Api.js built on a shared axios instance (src/api/client.js). Configure baseURL via import.meta.env.VITE_API_BASE_URL (default: /api).
+Styling: Clean, functional CSS. Consistent spacing, sidebar nav, styled tables/forms/buttons, error banners for failed requests. No UI frameworks.
+5. Dockerization Requirements
+backend/Dockerfile: Multi-stage. Build jar with Gradle wrapper (./gradlew), run on a slim JRE image (non-root user).
+frontend/Dockerfile: Multi-stage. npm run build, serve static bundle with Nginx. Bake API base URL as a build-time arg (e.g., /api).
+frontend/nginx.conf: Serve SPA with client-side routing fallback to index.html. Reverse-proxy /api/* to backend container.
+docker-compose.yml at project root with three services:
+db: PostgreSQL with healthcheck (pg_isready -U postgres), named volume for persistence, schema.sql mounted to /docker-entrypoint-initdb.d.
+backend: Depends on db being healthy (depends_on: db: condition: service_healthy). Pass DB credentials via environment variables.
+frontend: Depends on backend. Exposed on host port 3000:80.
+One-command setup: docker compose up --build must bring up a fully working stack with zero manual DB setup.
+6. Deliverables
+Complete, runnable source code for backend and frontend (all entities/repositories/controllers; all list/form pages).
+Backend built with Gradle (include Gradle wrapper: gradlew, gradlew.bat, gradle/wrapper/*).
+schema.sql matching the DDL exactly.
+docker-compose.yml + both Dockerfiles + nginx.conf.
+README.md covering: local setup, Docker one-command setup, full endpoint list, and key design decisions.
+7. Strict Constraints (Do Not Implement)
+❌ No authentication/authorization.
+❌ No pagination, sorting, or filtering on list endpoints.
+❌ No unit/integration tests unless explicitly requested.
+❌ No Flyway, Liquibase, or migration tools. Use schema.sql only.
+❌ No quoted identifiers in SQL, Java, or Docker configs.
+❌ No hardcoded DB credentials or API URLs. Use environment variables.
+❌ Do not invent extra services, CI/CD pipelines, or monitoring tools.
